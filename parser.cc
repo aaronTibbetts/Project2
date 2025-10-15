@@ -12,6 +12,9 @@ std::unordered_map<std::string, std::vector<std::vector<std::string>>> startPars
     std::unordered_map<std::string, std::vector<std::vector<std::string>>> grammarRules;
     while((currentToken = lexer.GetToken()).token_type!= END_OF_FILE){
         rule newRule;
+i       if(currentToken.token_type == ERROR){
+            std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
+        }
         if(lexer.peek(1).token_type == ARROW){
             int i = 2;
             newRule.LHS = currentToken.lexeme;
