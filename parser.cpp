@@ -399,67 +399,60 @@ void leftFactor(std::unordered_map<std::string, std::vector<std::vector<std::str
 void elemRecursion(std::unordered_map<std::string, std::vector<std::vector<std::string>>> grammar){
     std::multimap<std::string, std::vector<std::string>> newGrammar;
     std::vector<std::string> seenOrderVector = getVector(grammar); 
+   
 
-    for(const auto& entry: seenOrderVector){
-        std::string nonTerminal = entry;
-        const auto productions = grammar[entry];
-
-        std::vector<std::vector<std::string>> hasRecursion;
-        std::vector<std::vector<std::string>> hasNoRecursion;
-
-        for(std::vector<std::string> production : productions){
-            if(production[0] == nonTerminal){
-                hasRecursion.push_back(production); 
-            }else{
-                hasNoRecursion.push_back(production);
-            }
-        }
-
-        if(!hasRecursion.empty()){
-            std::string newNonTerminal = nonTerminal + "1";
-            for(const auto& q: hasRecursion){
-                std::vector<std::string> newRHS = q;
-                newRHS.push_back(newNonTerminal);
-                newRHS.erase(newRHS.begin() + 0);
-                newGrammar.insert({newNonTerminal, {}});
-                newGrammar.insert({newNonTerminal,newRHS});
-            }   
-        } else{
-            for(const auto& q: grammar[nonTerminal]){
-                    std::string tmp = q[0];
-                    if(isupper(tmp[0])){
-                        if(nonTerminal > tmp){
-                            while(nonTerminal >tmp){
-                                if(isupper(tmp[0])){
-                                    std::string r;
-                                    for(int i = 0; i < grammar[tmp].size(); i++){
-                                            std::vector<std::string> t = grammar[tmp][i];
-                                            for(int y = 0; y < t.size(); y++){
-                                                r += t[y];
-                                            } 
-                                        }
-                                    std::vector<std::string> u = grammar[nonTerminal][0];
-                                    u[0] = r;
-                                    newGrammar.insert({nonTerminal,u});
-                                    tmp =r;
-                            }else {
-                                break;
+    for(const auto& nonTerminal: seenOrderVector){
+         bool ruleDeleted = false;
+         bool added = false;
+         bool needsReview = false;
+        for(auto& production : grammar[nonTerminal]){
+            std::vector<std::string> newRHS;
+            if(isupper(production[0][0]) && production[0] < nonTerminal){
+                while((production[0] <= nonTerminal && !added)){
+                    std::string firstElement = production[0];
+                    if(grammar[firstElement][0][0] == firstElement){
+                        //need to delete this production
+                        std::vector<std::string> oldRHS = grammar[firstElement][0];
+                        grammar[nonTerminal].erase(std::remove(grammar[nonTerminal].begin(), grammar[nonTerminal].end(), production), grammar[nonTerminal].end());
+                        grammar.erase(firstElement);
+                        oldRHS.push_back(firstElement + "1");
+                        oldRHS.erase(oldRHS.begin());
+                        newGrammar.insert({firstElement + "1", {{" "}}});
+                        newGrammar.insert({firstElement + "1", {oldRHS}});
+                        seenOrderVector.erase(std::remove(seenOrderVector.begin(), seenOrderVector.end(), firstElement), seenOrderVector.end());
+                        ruleDeleted = true;
+                        break;
+                    } else {
+                        if(grammar[firstElement].size() > 1){
+                            std::vector<std::string> reviewProdcution;
+                            for(const auto& rhs : grammar[firstElement]){
+                                std::vector<std::string> temp = production;
+                                temp.erase(temp.begin());
+                                temp.insert(temp.begin(), rhs.begin(), rhs.end());
+                                //need to check if there is still left recursion
+                                newGrammar.insert({nonTerminal, temp});
+                                added = true;
                             }
+                            break;
+                            
+                        } else {
+                            production.erase(production.begin());
+                            production.insert(production.begin(), grammar[firstElement][0].begin(), grammar[firstElement][0].end());
                         }
-                    } else{
-                        newGrammar.insert({nonTerminal,q});
                     }
-                } else {
-                    newGrammar.insert({nonTerminal,q});
                 }
+                if(!ruleDeleted && !added){
+                    newGrammar.insert({nonTerminal, production});
+                }
+                
+            } else {
+                newGrammar.insert({nonTerminal, production});
             }
         }
+       sortMultimapValues(newGrammar, nonTerminal);
     }
-
-   for(const auto& e : newGrammar){
-        sortMultimapValues(newGrammar, e.first);
-    }
-
+   
+    
 
     for(const auto& e : newGrammar){
         std::cout << e.first << " -> ";
