@@ -10,6 +10,7 @@ std::unordered_map<std::string, std::vector<std::vector<std::string>>> startPars
     LexicalAnalyzer lexer = LexicalAnalyzer();
     Token currentToken; 
     std::unordered_map<std::string, std::vector<std::vector<std::string>>> grammarRules;
+    bool hashSeen = false;
     while((currentToken = lexer.GetToken()).token_type!= END_OF_FILE){
         rule newRule;
         if(currentToken.token_type == ERROR){
@@ -40,9 +41,15 @@ std::unordered_map<std::string, std::vector<std::vector<std::string>>> startPars
             }
             grammarRules[newRule.LHS].push_back(rhs);
         }
+        if(currentToken.token_type == HASH){
+            hashSeen = true;
+        }
         
     }
-   
+     if(!hashSeen){
+        std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
+        exit(1);
+    }
     return grammarRules;
 }
 
