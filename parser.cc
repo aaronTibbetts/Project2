@@ -50,6 +50,10 @@ std::unordered_map<std::string, std::vector<std::vector<std::string>>> startPars
         std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
         exit(1);
     }
+    if(grammarRules.empty()){
+        std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
+        exit(1);
+    }
     return grammarRules;
 }
 
