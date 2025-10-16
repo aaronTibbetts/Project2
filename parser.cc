@@ -14,6 +14,7 @@ std::unordered_map<std::string, std::vector<std::vector<std::string>>> startPars
         rule newRule;
         if(currentToken.token_type == ERROR){
             std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
+            exit(1);
         }
         if(lexer.peek(1).token_type == ARROW){
             int i = 2;
@@ -31,7 +32,10 @@ std::unordered_map<std::string, std::vector<std::vector<std::string>>> startPars
             }
                 i++;
             }
-
+            if(lexer.peek(i).token_type == STAR){
+                std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
+                exit(1);
+            }
             grammarRules[newRule.LHS].push_back(rhs);
         }
         
