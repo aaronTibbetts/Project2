@@ -21,6 +21,7 @@ std::unordered_map<std::string, std::vector<std::vector<std::string>>> startPars
             newRule.LHS = currentToken.lexeme;
             orderVector.push_back(currentToken.lexeme);
             std::vector<std::string> rhs;
+            Token tokenToCheck;
             while(lexer.peek(i).token_type!= STAR){
             if(lexer.peek(i).token_type == ARROW){
                 //do nothin   
@@ -31,8 +32,9 @@ std::unordered_map<std::string, std::vector<std::vector<std::string>>> startPars
                 rhs.clear();
             }
                 i++;
+                tokenToCheck = lexer.peek(i);
             }
-            if(lexer.peek(i).token_type == STAR){
+            if(lexer.peek(i+1).token_type == STAR && tokenToCheck.token_type == STAR){
                 std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
                 exit(1);
             }
