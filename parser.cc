@@ -32,6 +32,10 @@ std::unordered_map<std::string, std::vector<std::vector<std::string>>> startPars
                 grammarRules[newRule.LHS].push_back(rhs);
                 rhs.clear();
             }
+            if((lexer.peek(i).line_no < lexer.peek(i+1).line_no) && lexer.peek(i).token_type != STAR){
+                std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
+                exit(1); 
+                }
                 i++;
                 tokenToCheck = lexer.peek(i);
             }
