@@ -49,9 +49,12 @@ std::unordered_map<std::string, std::vector<std::vector<std::string>>> startPars
                 //do nothin
                     } else if (lexer.peek(i).token_type == ID){ 
                         rhs.push_back(lexer.peek(i).lexeme);
-                    } else if(lexer.peek(i).token_type == OR ){
+                    } else if(lexer.peek(i).token_type == OR && lexer.peek(i+1).token_type == STAR || lexer.peek(i+1).token_type == ID){
                         grammarRules[newRule.LHS].push_back(rhs);
                         rhs.clear();
+                    } else {
+                        std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
+                        exit(1);
                     }
                     if((lexer.peek(i).line_no < lexer.peek(i+1).line_no) && lexer.peek(i).token_type != STAR){
                         std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
