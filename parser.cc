@@ -11,12 +11,32 @@ std::unordered_map<std::string, std::vector<std::vector<std::string>>> startPars
     Token currentToken; 
     std::unordered_map<std::string, std::vector<std::vector<std::string>>> grammarRules;
     bool hashSeen = false;
+    int currentLineNumber = 1;
     while((currentToken = lexer.GetToken()).token_type!= END_OF_FILE){
+        bool lineChanged = false;
         rule newRule;
         if(currentToken.token_type == ERROR){
             std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
             exit(1);
         }
+        
+        if(currentLineNumber < currentToken.line_no){
+            currentLineNumber = currentToken.line_no;
+            lineChanged = true;
+        }
+
+        if(currentToken.token_type == ID && lexer.peek(1).token_type != ARROW && lineChanged){
+            std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
+            exit(1);
+        }
+
+        if(currentToken.token_type == ID && currentLineNumber == 1 && orderVector.empty()){
+            if(lexer.peek(1).token_type != ARROW){
+                std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
+                exit(1);
+            }
+        }
+
         if(lexer.peek(1).token_type == ARROW){
             int i = 2;
             newRule.LHS = currentToken.lexeme;
@@ -24,17 +44,17 @@ std::unordered_map<std::string, std::vector<std::vector<std::string>>> startPars
             std::vector<std::string> rhs;
             Token tokenToCheck;
             while(lexer.peek(i).token_type!= STAR){
-            if(lexer.peek(i).token_type == ARROW){
-                //do nothin   
-            } else if (lexer.peek(i).token_type == ID){ 
-               rhs.push_back(lexer.peek(i).lexeme);
-            } else if(lexer.peek(i).token_type == OR ){
-                grammarRules[newRule.LHS].push_back(rhs);
-                rhs.clear();
-            }
-            if((lexer.peek(i).line_no < lexer.peek(i+1).line_no) && lexer.peek(i).token_type != STAR){
-                std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
-                exit(1); 
+                if(lexer.peek(i).token_type == ARROW){
+                //do nothin
+                } else if (lexer.peek(i).token_type == ID){ 
+                    rhs.push_back(lexer.peek(i).lexeme);
+                } else if(lexer.peek(i).token_type == OR ){
+                    grammarRules[newRule.LHS].push_back(rhs);
+                    rhs.clear();
+                }
+                if((lexer.peek(i).line_no < lexer.peek(i+1).line_no) && lexer.peek(i).token_type != STAR){
+                    std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
+                    exit(1); 
                 }
                 i++;
                 tokenToCheck = lexer.peek(i);
@@ -43,14 +63,16 @@ std::unordered_map<std::string, std::vector<std::vector<std::string>>> startPars
                 std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
                 exit(1);
             }
+
             grammarRules[newRule.LHS].push_back(rhs);
-        }
+        } 
+        
         if(currentToken.token_type == HASH){
             hashSeen = true;
         }
         
     }
-     if(!hashSeen){
+    if(!hashSeen){
         std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
         exit(1);
     }
@@ -58,6 +80,7 @@ std::unordered_map<std::string, std::vector<std::vector<std::string>>> startPars
         std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
         exit(1);
     }
+
     return grammarRules;
 }
 
