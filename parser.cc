@@ -43,30 +43,22 @@ std::unordered_map<std::string, std::vector<std::vector<std::string>>> startPars
             orderVector.push_back(currentToken.lexeme);
             std::vector<std::string> rhs;
             Token tokenToCheck;
-            if(lexer.peek(i).token_type == STAR || lexer.peek(i).token_type == ID){
-                while(lexer.peek(i).token_type!= STAR){
-                    if(lexer.peek(i).token_type == ARROW){
+            while(lexer.peek(i).token_type!= STAR){
+                if(lexer.peek(i).token_type == ARROW){
                 //do nothin
-                    } else if (lexer.peek(i).token_type == ID){ 
-                        rhs.push_back(lexer.peek(i).lexeme);
-                    } else if(lexer.peek(i).token_type == OR && lexer.peek(i+1).token_type == STAR || lexer.peek(i+1).token_type == ID){
-                        grammarRules[newRule.LHS].push_back(rhs);
-                        rhs.clear();
-                    } else {
-                        std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
-                        exit(1);
-                    }
-                    if((lexer.peek(i).line_no < lexer.peek(i+1).line_no) && lexer.peek(i).token_type != STAR){
-                        std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
-                        exit(1); 
-                    }
-                    i++;
-                    tokenToCheck = lexer.peek(i);
+                } else if (lexer.peek(i).token_type == ID){ 
+                    rhs.push_back(lexer.peek(i).lexeme);
+                } else if(lexer.peek(i).token_type == OR ){
+                    grammarRules[newRule.LHS].push_back(rhs);
+                    rhs.clear();
+                }
+                if((lexer.peek(i).line_no < lexer.peek(i+1).line_no) && lexer.peek(i).token_type != STAR){
+                    std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
+                    exit(1); 
+                }
+                i++;
+                tokenToCheck = lexer.peek(i);
             }
-        } else {
-            std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
-            exit(1);
-        }
             if(lexer.peek(i+1).token_type == STAR && tokenToCheck.token_type == STAR){
                 std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
                 exit(1);
