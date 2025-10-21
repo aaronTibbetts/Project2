@@ -54,13 +54,8 @@ std::unordered_map<std::string, std::vector<std::vector<std::string>>> startPars
                 } else if (lexer.peek(i).token_type == ID){ 
                     rhs.push_back(lexer.peek(i).lexeme);
                 } else if(lexer.peek(i).token_type == OR ){
-                     if(lexer.peek(i+1).token_type == OR){
-                        std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
-                        exit(1);
-                    } else {
-                        grammarRules[newRule.LHS].push_back(rhs);
-                        rhs.clear();
-                    }
+                    grammarRules[newRule.LHS].push_back(rhs);
+                    rhs.clear();
                 }
                 //checking for star at end of line 
                 if((lexer.peek(i).line_no < lexer.peek(i+1).line_no) && lexer.peek(i).token_type != STAR){
