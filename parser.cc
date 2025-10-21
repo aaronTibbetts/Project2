@@ -5,6 +5,8 @@
 std::vector<std::string> orderVector; 
 std::vector<std::string> seenOrderVector;
 std::vector<std::string> seenOrderVectorTerm;
+std::set<std::string> seenTerminals;
+std::vector<std::pair<std::string ,std::vector<std::string>>> order; 
 
 std::unordered_map<std::string, std::vector<std::vector<std::string>>> startParser(){
     LexicalAnalyzer lexer = LexicalAnalyzer();
@@ -55,6 +57,7 @@ std::unordered_map<std::string, std::vector<std::vector<std::string>>> startPars
                     rhs.push_back(lexer.peek(i).lexeme);
                 } else if(lexer.peek(i).token_type == OR ){
                     grammarRules[newRule.LHS].push_back(rhs);
+                    order.push_back({newRule.LHS, rhs});
                     rhs.clear();
                 }
                 //checking for star at end of line 
@@ -70,7 +73,9 @@ std::unordered_map<std::string, std::vector<std::vector<std::string>>> startPars
                 std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
                 exit(1);
             }
+            order.push_back({newRule.LHS, rhs});
             grammarRules[newRule.LHS].push_back(rhs);
+
         } 
         
         if(currentToken.token_type == HASH){
@@ -91,7 +96,18 @@ std::unordered_map<std::string, std::vector<std::vector<std::string>>> startPars
 }
 
 void printTerminals(std::unordered_map<std::string, std::vector<std::vector<std::string>>> grammar){
-    std:: vector <std::string> terminals;
+    std:: set <std::string> seen;
+    std::vector<std::string> vec = getVector(grammar);
+    for(const auto& e : order){
+        for(const auto& terminal : e.second){
+            if(!contains(vec, terminal) && seen.find(terminal)== seen.end()){
+                std::cout << terminal << " ";
+                seen.insert(terminal);
+            }
+        }
+    }
+
+    /*std:: vector <std::string> terminals;
     std:: set<std::string> seen;
     for (const auto& element : orderVector) {
         const auto v = grammar[element]; 
@@ -107,6 +123,7 @@ void printTerminals(std::unordered_map<std::string, std::vector<std::vector<std:
     for(const auto& e : terminals){
         std::cout << e << " ";
     }
+        */
 }
 
 void printRules(std::unordered_map<std::string, std::vector<std::vector<std::string>>> grammar){
