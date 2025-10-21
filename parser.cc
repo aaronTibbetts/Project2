@@ -140,6 +140,7 @@ void printRules(std::unordered_map<std::string, std::vector<std::vector<std::str
                 seen.insert(rhs);
             }
         }
+    }
 }
 
 void printNullable(std::unordered_map<std::string, std::vector<std::vector<std::string>>> grammar){
