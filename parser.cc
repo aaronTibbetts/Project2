@@ -24,19 +24,22 @@ std::unordered_map<std::string, std::vector<std::vector<std::string>>> startPars
             currentLineNumber = currentToken.line_no;
             lineChanged = true;
         }
+        
 
+        //checking for -> 
         if(currentToken.token_type == ID && lexer.peek(1).token_type != ARROW && lineChanged){
             std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
             exit(1);
         }
 
+        //checking for -> for first rule 
         if(currentToken.token_type == ID && currentLineNumber == 1 && orderVector.empty()){
             if(lexer.peek(1).token_type != ARROW){
                 std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
                 exit(1);
             }
         }
-
+        
         if(lexer.peek(1).token_type == ARROW){
             int i = 2;
             newRule.LHS = currentToken.lexeme;
@@ -44,14 +47,17 @@ std::unordered_map<std::string, std::vector<std::vector<std::string>>> startPars
             std::vector<std::string> rhs;
             Token tokenToCheck;
             while(lexer.peek(i).token_type!= STAR){
+                //check for double arrow 
                 if(lexer.peek(i).token_type == ARROW){
-                //do nothin
+                    std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
+                    exit(1);
                 } else if (lexer.peek(i).token_type == ID){ 
                     rhs.push_back(lexer.peek(i).lexeme);
                 } else if(lexer.peek(i).token_type == OR ){
                     grammarRules[newRule.LHS].push_back(rhs);
                     rhs.clear();
                 }
+                //checking for star at end of line 
                 if((lexer.peek(i).line_no < lexer.peek(i+1).line_no) && lexer.peek(i).token_type != STAR){
                     std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
                     exit(1); 
@@ -59,6 +65,7 @@ std::unordered_map<std::string, std::vector<std::vector<std::string>>> startPars
                 i++;
                 tokenToCheck = lexer.peek(i);
             }
+            //checking for double stars 
             if(lexer.peek(i+1).token_type == STAR && tokenToCheck.token_type == STAR){
                 std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
                 exit(1);
