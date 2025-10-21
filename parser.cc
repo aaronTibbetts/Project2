@@ -41,10 +41,6 @@ std::unordered_map<std::string, std::vector<std::vector<std::string>>> startPars
         }
         
         if(lexer.peek(1).token_type == ARROW){
-            if(lexer.peek(2).token_type == OR){
-                std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
-                exit(1);
-            }
             int i = 2;
             newRule.LHS = currentToken.lexeme;
             orderVector.push_back(currentToken.lexeme);
