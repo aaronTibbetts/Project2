@@ -71,6 +71,10 @@ std::unordered_map<std::string, std::vector<std::vector<std::string>>> startPars
                 exit(1);
             }
 
+            if(tokenToCheck.line_no == lexer.peek(i+1).line_no && tokenToCheck.token_type == STAR){
+                std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
+                exit(1);
+            }
             grammarRules[newRule.LHS].push_back(rhs);
         } 
         
