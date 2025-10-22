@@ -149,36 +149,50 @@ void printNullable(std::unordered_map<std::string, std::vector<std::vector<std::
     bool changed = true;
     while(changed){
         changed = false; 
-        for(auto& element: grammar){
-            int count = 0;
-            for(const auto& rhs: element.second){
-                if(rhs.size() == 0 &&nullable.insert(element.first).second){
+        for(const auto& element: order){
+            std::string lhs = element.first;
+            std::vector<std::string> rhs = element.second;
+            if(rhs.empty() && nullable.find(lhs) == nullable.end()){
+                    nullable.insert(lhs);
                     changed = true;
-                } else {
-                    for(const auto& s: rhs){
-                        if(nullable.find(s)!= nullable.end()){
-                            count++;
-                        }
-                    }
-                    if(count == rhs.size()&&nullable.insert(element.first).second){
-                        changed = true; 
-                    }
-                } 
+            }
+            bool allNullable = true;
+            for(const auto& symbol : rhs){
+                if(!contains(seenOrderVector, symbol) || nullable.find(symbol) == nullable.end()){
+                    allNullable = false;
+                    break;
+                }
+            }
+
+            if(allNullable && nullable.find(lhs) == nullable.end()){
+                nullable.insert(lhs);
+                changed = true;
             }
         }
     }
 
     std::cout<<"Nullable = { ";
-    for(int i = 0; i < seenOrderVector.size(); i++){
-        if(nullable.count(seenOrderVector[i]) && contains(seenOrderVector,seenOrderVector[i])){
-            if(nullable.size() == 1){
-                std::cout<<seenOrderVector[i]<< " ";
-            } else {
-                if(i >= nullable.size()){
-                    std::cout<<seenOrderVector[i]<< " ";
-                } else {
-                    std::cout<<seenOrderVector[i]<< " , ";
+    std::set<std::string> printed;
+    int count = 0;
+
+    
+    for(const auto& element : order){
+        if(nullable.find(element.first) != nullable.end() && printed.find(element.first) == printed.end()){
+            if(count > 0){
+                std::cout<<" , ";
+            }
+            printed.insert(element.first);
+            std::cout<< element.first;
+            count++;
+        }
+        for(const auto& term : element.second){
+            if(nullable.find(term) != nullable.end() && printed.find(term) == printed.end()){
+                if(count > 0){
+                    std::cout<<" , ";
                 }
+                count++;
+                printed.insert(term);
+                std::cout<< term;
             }
         }
     }
