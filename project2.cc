@@ -95,15 +95,6 @@ int main (int argc, char* argv[])
         order = getVector(grammar);
         termOrder =getVectorTerm(grammar);
 
-        for(const auto& element: firstSets){
-            if(contains(element.second, " ")){
-                auto tmp = element.second;
-                auto i = std::remove(tmp.begin(), tmp.end(), " ");
-                tmp.erase(i, tmp.end());
-                firstSets[element.first]= tmp;
-            }
-        }
-
         for(const auto& entry: order){
                 std::cout<<"FIRST(" << entry <<") = { ";
                 int count = 0;
