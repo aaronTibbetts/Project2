@@ -125,7 +125,7 @@ void printRules(std::unordered_map<std::string, std::vector<std::vector<std::str
     }
 }
 
-void printNullable(std::unordered_map<std::string, std::vector<std::vector<std::string>>> grammar){
+std::set<std::string> nullable(std::unordered_map<std::string, std::vector<std::vector<std::string>>> grammar){
     std::set <std::string> nullable;
     seenOrderVector = getVector(grammar);
     bool changed = true;
@@ -152,12 +152,13 @@ void printNullable(std::unordered_map<std::string, std::vector<std::vector<std::
             }
         }
     }
+    return nullable;
+}
 
+void printNullable(std::set<std::string> nullable){
     std::cout<<"Nullable = { ";
     std::set<std::string> printed;
     int count = 0;
-
-    
     for(const auto& element : order){
         if(nullable.find(element.first) != nullable.end() && printed.find(element.first) == printed.end()){
             if(count > 0){
@@ -179,56 +180,92 @@ void printNullable(std::unordered_map<std::string, std::vector<std::vector<std::
         }
     }
     std::cout<< " }";
-    
 }
 
 std::unordered_map<std::string, std::vector<std::string>> printFirstSet(std::unordered_map<std::string, std::vector<std::vector<std::string>>> grammar){
+   //get nullable set first 
+    std::set<std::string> nullableSet = getNullable(grammar);
     std::unordered_map<std::string, std::vector<std::string>> firstSets;
     bool changed = true;
-    std::vector<std::string> seenOrderVector = getVector(grammar);
+    std::vector<std::string> nonTerminals = getVector(grammar);
+    std::vector<std::string> terminals = getVectorTerm(grammar);
 
-
-    for(const auto& element : seenOrderVector){
-         firstSets[element] = { };
+    //apply rule 1
+    for(const auto& element : order){
+        if(!element.second.empty() && contains(terminals, element.second[0])){
+            if(firstSets[element.first].empty()){
+                firstSets[element.first].push_back(element.second[0]);
+            } else {
+                if(!contains(firstSets[element.first], element.second[0])){
+                    firstSets[element.first].push_back(element.second[0]);
+                }
+            }
+            
+        }
     }
 
     while(changed){
         changed = false;
-        for(const auto& element: grammar){
-            std::string nonTerminal = element.first;
-            for(const auto& production: element.second){
-                bool isNullable = true;
-                for(int i = 0; i < production.size(); i++){
-                    std::string symbol = production[i];
-                    if(grammar.find(symbol) == grammar.end()){
-                       if(!contains(firstSets[nonTerminal], symbol)){
-                            firstSets[nonTerminal].push_back(symbol);
-                            changed = true;
-                        }
-                        isNullable = false;
-                        break;
-                    }else{
-                        std::vector<std::string> firstOfSymbol = firstSets[symbol];
-                        for(const auto& terminal : firstOfSymbol){
-                            if(terminal!= " " &&!contains(firstSets[nonTerminal], terminal)){
-                                firstSets[nonTerminal].push_back(terminal);
-                                changed = true;
+        for(const auto& element : order){
+            for(const auto& symbol : element.second){
+                if(contains(nonTerminals, symbol)){ //get first set of current symbol
+                    if(nullableSet.find(symbol) == nullableSet.end()){
+                        if(firstSets[element.first].empty()){
+                            if(!firstSets[symbol].empty()){
+                                for(const auto& fs: firstSets[symbol]){
+                                    firstSets[element.first].push_back(fs);
+                                    changed = true;
+                                }
+                            }
+                        } else{
+                            if(!firstSets[symbol].empty()){
+                                for(const auto& fs : firstSets[symbol]){
+                                    if(!contains(firstSets[element.first], fs)){
+                                        firstSets[element.first].push_back(fs);
+                                        changed = true;
+                                    }
+                                }
                             }
                         }
-                    if(std::find(firstOfSymbol.begin(), firstOfSymbol.end(), " ") == firstOfSymbol.end()){
-                        isNullable = false;
                         break;
+                    } else{
+                        if(firstSets[element.first].empty()){
+                            if(!firstSets[symbol].empty()){
+                                for(const auto& fs : firstSets[symbol]){
+                                    firstSets[element.first].push_back(fs);
+                                }
+                                changed = true;
+                            }
+                        } else{
+                            if(!firstSets[symbol].empty()){
+                                for(const auto& fs : firstSets[symbol]){
+                                    if(!contains(firstSets[element.first], fs)){
+                                        firstSets[element.first].push_back(fs);
+                                        changed = true;
+                                    } 
+                                }
+                            }
+                        }
+                        continue;
+                    }
+                } else {
+                    if(firstSets[element.first].empty()){
+                        firstSets[element.first].push_back(symbol);
+                        changed = true;
+                    } else{
+                        if(!contains(firstSets[element.first], symbol)){
+                            firstSets[element.first].push_back(symbol);
+                            changed = true;
                         }
                     }
-                }
-                if(isNullable && !contains(firstSets[nonTerminal], " ")){
-                        firstSets[nonTerminal].push_back(" ");
-                        changed = true;
-                    }
+                    break;
                 }
             }
-      }
-     return firstSets;
+        }
+    }
+
+    
+    return firstSets;
 }
 
 
