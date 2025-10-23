@@ -12,9 +12,12 @@ std::unordered_map<std::string, std::vector<std::vector<std::string>>> startPars
     LexicalAnalyzer lexer = LexicalAnalyzer();
     Token currentToken; 
     std::unordered_map<std::string, std::vector<std::vector<std::string>>> grammarRules;
+    std::unordered_set<std::string> seenTerminals;
+    std::unordered_set<std::string> seenNonTerminals;
     bool hashSeen = false;
-    int currentLineNumber = 1;
-    while((currentToken = lexer.GetToken()).token_type!= END_OF_FILE){
+    currentToken = lexer.GetToken();
+
+    while(currentToken.token_type!= END_OF_FILE){
         bool lineChanged = false;
         rule newRule;
         if(currentToken.token_type == ERROR){
@@ -22,85 +25,122 @@ std::unordered_map<std::string, std::vector<std::vector<std::string>>> startPars
             exit(1);
         }
         
-        if(currentLineNumber < currentToken.line_no){
-            currentLineNumber = currentToken.line_no;
-            lineChanged = true;
+        if(currentToken.token_type == HASH){
+            hashSeen = true;
+            currentToken = lexer.GetToken();
+            continue;
         }
         
-
-        //checking for -> 
-        if(currentToken.token_type == ID && lexer.peek(1).token_type != ARROW && lineChanged){
+        if(currentToken.token_type != ID){
             std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
             exit(1);
         }
+        
+        std::string lhs = currentToken.lexeme;
 
-        //checking for -> for first rule 
-        if(currentToken.token_type == ID && currentLineNumber == 1 && orderVector.empty()){
-            if(lexer.peek(1).token_type != ARROW){
-                std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
-                exit(1);
+        if(seenNonTerminals.find(lhs) == seenNonTerminals.end()){
+            seenNonTerminals.insert(lhs);
+            seenOrderVector.push_back(lhs);
+        }
+
+        currentToken = lexer.GetToken();
+        if(currentToken.token_type != ARROW){
+            std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
+            exit(1);
+        }
+        currentToken = lexer.GetToken();
+
+        if(currentToken.token_type == STAR){
+            std::vector<std::string> emptyRHS;
+            grammarRules[lhs].push_back(emptyRHS);
+            order.push_back({lhs,emptyRHS});
+            currentToken = lexer.GetToken();
+            continue;
+        }
+
+        if(currentToken.token_type == OR){
+            std::vector<std::string> emptyRHS;
+            grammarRules[lhs].push_back(emptyRHS);
+            order.push_back({lhs,emptyRHS});
+            currentToken = lexer.GetToken();
+            currentToken = lexer.GetToken();
+            if(currentToken.token_type == STAR){
+                currentToken = lexer.GetToken();
+                continue;
             }
         }
-        
-        if(lexer.peek(1).token_type == ARROW){
-            int i = 2;
-            newRule.LHS = currentToken.lexeme;
-            orderVector.push_back(currentToken.lexeme);
-            std::vector<std::string> rhs;
-            Token tokenToCheck;
-            while(lexer.peek(i).token_type!= STAR){
-                //check for double arrow 
-                if(lexer.peek(i).token_type == ARROW){
+
+        std::vector<std::string> rhs;
+        while(true){
+            if(currentToken.token_type == ID){
+                rhs.push_back(currentToken.lexeme);
+                currentToken = lexer.GetToken();
+            } else if(currentToken.token_type == OR){
+                if(rhs.empty()){
                     std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
                     exit(1);
-                } else if (lexer.peek(i).token_type == ID){ 
-                    rhs.push_back(lexer.peek(i).lexeme);
-                } else if(lexer.peek(i).token_type == OR ){
-                    grammarRules[newRule.LHS].push_back(rhs);
-                    order.push_back({newRule.LHS, rhs});
-                    rhs.clear();
                 }
-                //checking for star at end of line 
-                if((lexer.peek(i).line_no < lexer.peek(i+1).line_no) && lexer.peek(i).token_type != STAR){
+                grammarRules[lhs].push_back(rhs);
+                order.push_back({lhs,rhs});
+                rhs.clear();
+                currentToken = lexer.GetToken();
+
+                if(currentToken.token_type == STAR){
+                    std::vector<std::string> emptyRHS;
+                    grammarRules[lhs].push_back(emptyRHS);
+                    order.push_back({lhs,emptyRHS});
+                    break;
+                }
+            } else if (currentToken.token_type == STAR){
+                if(rhs.empty()){
                     std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
-                    exit(1); 
+                    exit(1);
                 }
-                i++;
-                tokenToCheck = lexer.peek(i);
-            }
-            //checking for double stars 
-            if(lexer.peek(i+1).token_type == STAR && tokenToCheck.token_type == STAR){
+                grammarRules[lhs].push_back(rhs);
+                order.push_back({lhs,rhs});
+                break;
+            } else if (currentToken.token_type == ARROW){
+                std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
+                exit(1);
+            } else {
                 std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
                 exit(1);
             }
-            order.push_back({newRule.LHS, rhs});
-            grammarRules[newRule.LHS].push_back(rhs);
-
-        } 
-        
-        if(currentToken.token_type == HASH){
-            hashSeen = true;
         }
-        
+        currentToken = lexer.GetToken();
     }
     if(!hashSeen){
         std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
         exit(1);
     }
+
     if(grammarRules.empty()){
         std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
         exit(1);
+    }
+
+    for(const auto& rule : order){
+        std::string lhs = rule.first;
+        std::vector<std::string> rhs = rule.second;
+
+        for(const auto& symbol : rhs){
+            if(seenNonTerminals.find(symbol) == seenNonTerminals.end()){
+                if(seenTerminals.find(symbol) == seenTerminals.end()){
+                    seenTerminals.insert(symbol);
+                    seenOrderVectorTerm.push_back(symbol);
+                }
+            }
+        }
     }
 
     return grammarRules;
 }
 
 void printTerminals(std::unordered_map<std::string, std::vector<std::vector<std::string>>> grammar){
-    std:: set <std::string> seen;
-    std::vector<std::string> vec = getVector(grammar);
+    std::set <std::string> seen;
     for(const auto& e : order){
         for(const auto& terminal : e.second){
-            if(!contains(vec, terminal) && seen.find(terminal)== seen.end()){
+            if(!contains(seenOrderVector, terminal) && seen.find(terminal)== seen.end()){
                 std::cout << terminal << " ";
                 seen.insert(terminal);
             }
@@ -109,7 +149,6 @@ void printTerminals(std::unordered_map<std::string, std::vector<std::vector<std:
 }
 
 void printRules(std::unordered_map<std::string, std::vector<std::vector<std::string>>> grammar){
-    std:: vector <std::string> terminals = getVectorTerm(grammar);
     std:: set<std::string> seen;
     for(const auto& e : order){
         if(seen.find(e.first) == seen.end()){
@@ -117,7 +156,7 @@ void printRules(std::unordered_map<std::string, std::vector<std::vector<std::str
             seen.insert(e.first);
         }
         for(const auto& rhs : e.second){
-            if(seen.find(rhs) == seen.end() && !contains(terminals, rhs)){
+            if(seen.find(rhs) == seen.end() && !contains(seenOrderVectorTerm, rhs)){
                 std::cout << rhs << " ";
                 seen.insert(rhs);
             }
@@ -127,7 +166,6 @@ void printRules(std::unordered_map<std::string, std::vector<std::vector<std::str
 
 std::set<std::string> nullable(std::unordered_map<std::string, std::vector<std::vector<std::string>>> grammar){
     std::set <std::string> nullable;
-    seenOrderVector = getVector(grammar);
     bool changed = true;
     while(changed){
         changed = false; 
@@ -182,7 +220,7 @@ void printNullable(std::set<std::string> nullable){
     std::cout<< " }";
 }
 
-std::unordered_map<std::string, std::vector<std::string>> printFirstSet(std::unordered_map<std::string, std::vector<std::vector<std::string>>> grammar){
+std::unordered_map<std::string, std::vector<std::string>> firstSet(std::unordered_map<std::string, std::vector<std::vector<std::string>>> grammar){
    //get nullable set first 
     std::set<std::string> nullableSet = getNullable(grammar);
     std::unordered_map<std::string, std::vector<std::string>> firstSets;
@@ -268,11 +306,36 @@ std::unordered_map<std::string, std::vector<std::string>> printFirstSet(std::uno
     return firstSets;
 }
 
+void printFirstSet(std::unordered_map<std::string, std::vector<std::string>> first){
+    std::set<std::string> printed;
+    for(const auto& e : seenOrderVector){
+        if(printed.find(e) == printed.end()){
+            std::cout << "First("<< e << ") = { ";
+            printed.insert(e);
+            std::set<std::string> printedTerms;
+            int count = 0;
+            for(const auto& fs : seenOrderVectorTerm){
+                if(contains(first[e], fs)){
+                    if(printedTerms.find(fs) == printedTerms.end()){
+                        if(count > 0){
+                            std::cout << ", ";
+                        }
+                        printedTerms.insert(fs);
+                        count++;
+                        std::cout << fs;
+                        }
+                    }
+                }
+            std:: cout << " } \n";
+        }
+    }
+    
+}
 
 
 void printFollowSet(std::unordered_map<std::string, std::vector<std::vector<std::string>>> grammar){
     std::unordered_map<std::string, std::vector<std::string>> followSets;
-    std::unordered_map<std::string, std::vector<std::string>> firstSets = printFirstSet(grammar); 
+    std::unordered_map<std::string, std::vector<std::string>> firstSets = firstSet(grammar); 
     std::vector<std::string> seenOrderVector = getVector(grammar);
     std::vector<std::string> seenOrderVectorTerm = getVectorTerm(grammar);
     std::set<std::string> nullable = getNullable(grammar);
