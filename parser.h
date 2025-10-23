@@ -30,9 +30,7 @@ std::set<std::string> nullable(std::unordered_map<std::string, std::vector<std::
 
 void printNullable(std::set<std::string> nullable);
 
-std::unordered_map<std::string, std::vector<std::string>> firstSet(std::unordered_map<std::string, std::vector<std::vector<std::string>>> grammar);
-
-void printFirstSet(std::unordered_map<std::string, std::vector<std::string>> grammar);
+std::unordered_map<std::string, std::vector<std::string>> printFirstSet(std::unordered_map<std::string, std::vector<std::vector<std::string>>> grammar);
 
 void printFollowSet(std::unordered_map<std::string, std::vector<std::vector<std::string>>> grammar);
 
