@@ -106,24 +106,6 @@ void printTerminals(std::unordered_map<std::string, std::vector<std::vector<std:
             }
         }
     }
-
-    /*std:: vector <std::string> terminals;
-    std:: set<std::string> seen;
-    for (const auto& element : orderVector) {
-        const auto v = grammar[element]; 
-        for (const auto& rhs : v) {
-            for (const auto& symbol : rhs) {
-                if (grammar.find(symbol) == grammar.end() &&seen.find(symbol)==seen.end()) {
-                    terminals.push_back(symbol);
-                    seen.insert(symbol);
-                }
-            }
-        }
-    }
-    for(const auto& e : terminals){
-        std::cout << e << " ";
-    }
-        */
 }
 
 void printRules(std::unordered_map<std::string, std::vector<std::vector<std::string>>> grammar){
