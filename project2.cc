@@ -61,6 +61,7 @@ int main (int argc, char* argv[])
     std::unordered_map<std::string, std::vector<std::string>> firstSets;
     std::vector<string> order; 
     std::vector<string> termOrder;
+    std::set<string> nullableSet;
     if (argc < 2)
     {
         cout << "Error: missing argument\n";
@@ -85,7 +86,8 @@ int main (int argc, char* argv[])
             break;
 
         case 2: Task2();
-            printNullable(grammar);
+            nullableSet = nullable(grammar);
+            printNullable(nullableSet);
             break;
 
         case 3: Task3();
