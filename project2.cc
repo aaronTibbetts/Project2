@@ -91,10 +91,32 @@ int main (int argc, char* argv[])
             break;
 
         case 3: Task3();
-            firstSets= firstSet(grammar);
-            order = getVector(grammar);
-            termOrder = getVectorTerm(grammar);
-            printFirstSet(firstSets);
+        firstSets= printFirstSet(grammar);
+        order = getVector(grammar);
+        termOrder =getVectorTerm(grammar);
+
+        for(const auto& entry: order){
+                std::cout<<"FIRST(" << entry <<") = { ";
+                int count = 0;
+                for(int it = 0; it < termOrder.size(); it++){
+                    if(contains(firstSets[entry], termOrder[it])){
+                        if(firstSets[entry].size() == 1){
+                            std::cout<< termOrder[it];
+                        }else{
+                            if(count == firstSets[entry].size()-1){
+                                std::cout<<termOrder[it];
+                            }else{
+                                    std::cout<<termOrder[it]<<", ";
+                                    count++;
+                                }
+                                
+                            }
+                        } 
+                        
+                    }
+                    std::cout<<" }\n";
+
+                }
             break;
 
         case 4: Task4();
@@ -116,4 +138,3 @@ int main (int argc, char* argv[])
             
     return 0;
 }
-
