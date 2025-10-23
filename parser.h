@@ -26,7 +26,9 @@ void printTerminals(std::unordered_map<std::string, std::vector<std::vector<std:
 
 void printRules(std::unordered_map<std::string, std::vector<std::vector<std::string>>>  grammar);
 
-void printNullable(std::unordered_map<std::string, std::vector<std::vector<std::string>>>  grammar); 
+std::set<std::string> nullable(std::unordered_map<std::string, std::vector<std::vector<std::string>>> grammar);
+
+void printNullable(std::set<std::string> nullable);
 
 std::unordered_map<std::string, std::vector<std::string>> printFirstSet(std::unordered_map<std::string, std::vector<std::vector<std::string>>> grammar);
 
