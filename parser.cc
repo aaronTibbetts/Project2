@@ -5,11 +5,10 @@
 std::vector<std::string> orderVector; 
 std::vector<std::string> seenOrderVector;
 std::vector<std::string> seenOrderVectorTerm;
-std::set<std::string> seenTerminals;
 std::vector<std::pair<std::string ,std::vector<std::string>>> order; 
 
 std::unordered_map<std::string, std::vector<std::vector<std::string>>> startParser(){
-    LexicalAnalyzer lexer = LexicalAnalyzer();
+LexicalAnalyzer lexer = LexicalAnalyzer();
     Token currentToken; 
     std::unordered_map<std::string, std::vector<std::vector<std::string>>> grammarRules;
     std::unordered_set<std::string> seenTerminals;
@@ -137,7 +136,7 @@ std::unordered_map<std::string, std::vector<std::vector<std::string>>> startPars
 }
 
 void printTerminals(std::unordered_map<std::string, std::vector<std::vector<std::string>>> grammar){
-    std::set <std::string> seen;
+    std:: set <std::string> seen;
     for(const auto& e : order){
         for(const auto& terminal : e.second){
             if(!contains(seenOrderVector, terminal) && seen.find(terminal)== seen.end()){
@@ -220,7 +219,7 @@ void printNullable(std::set<std::string> nullable){
     std::cout<< " }";
 }
 
-std::unordered_map<std::string, std::vector<std::string>> firstSet(std::unordered_map<std::string, std::vector<std::vector<std::string>>> grammar){
+std::unordered_map<std::string, std::vector<std::string>> printFirstSet(std::unordered_map<std::string, std::vector<std::vector<std::string>>> grammar){
    //get nullable set first 
     std::set<std::string> nullableSet = getNullable(grammar);
     std::unordered_map<std::string, std::vector<std::string>> firstSets;
@@ -306,36 +305,11 @@ std::unordered_map<std::string, std::vector<std::string>> firstSet(std::unordere
     return firstSets;
 }
 
-void printFirstSet(std::unordered_map<std::string, std::vector<std::string>> first){
-    std::set<std::string> printed;
-    for(const auto& e : seenOrderVector){
-        if(printed.find(e) == printed.end()){
-            std::cout << "First("<< e << ") = { ";
-            printed.insert(e);
-            std::set<std::string> printedTerms;
-            int count = 0;
-            for(const auto& fs : seenOrderVectorTerm){
-                if(contains(first[e], fs)){
-                    if(printedTerms.find(fs) == printedTerms.end()){
-                        if(count > 0){
-                            std::cout << ", ";
-                        }
-                        printedTerms.insert(fs);
-                        count++;
-                        std::cout << fs;
-                        }
-                    }
-                }
-            std:: cout << " } \n";
-        }
-    }
-    
-}
 
 
 void printFollowSet(std::unordered_map<std::string, std::vector<std::vector<std::string>>> grammar){
     std::unordered_map<std::string, std::vector<std::string>> followSets;
-    std::unordered_map<std::string, std::vector<std::string>> firstSets = firstSet(grammar); 
+    std::unordered_map<std::string, std::vector<std::string>> firstSets = printFirstSet(grammar); 
     std::vector<std::string> seenOrderVector = getVector(grammar);
     std::vector<std::string> seenOrderVectorTerm = getVectorTerm(grammar);
     std::set<std::string> nullable = getNullable(grammar);
