@@ -34,7 +34,6 @@ LexicalAnalyzer lexer = LexicalAnalyzer();
             }
             break;
         }
-        }
         
         if(currentToken.token_type != ID){
             std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
