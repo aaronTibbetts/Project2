@@ -27,10 +27,6 @@ LexicalAnalyzer lexer = LexicalAnalyzer();
         if(currentToken.token_type == HASH){
             hashSeen = true;
             currentToken = lexer.GetToken();
-
-            if(currentToken.token_type == HASH){
-            hashSeen = true;
-            currentToken = lexer.GetToken();
             
             if(currentToken.token_type != END_OF_FILE){
                 std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
