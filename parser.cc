@@ -8,7 +8,7 @@ std::vector<std::string> seenOrderVectorTerm;
 std::vector<std::pair<std::string ,std::vector<std::string>>> order; 
 
 std::unordered_map<std::string, std::vector<std::vector<std::string>>> startParser(){
-LexicalAnalyzer lexer = LexicalAnalyzer();
+    LexicalAnalyzer lexer = LexicalAnalyzer();
     Token currentToken; 
     std::unordered_map<std::string, std::vector<std::vector<std::string>>> grammarRules;
     std::unordered_set<std::string> seenTerminals;
@@ -17,8 +17,6 @@ LexicalAnalyzer lexer = LexicalAnalyzer();
     currentToken = lexer.GetToken();
 
     while(currentToken.token_type!= END_OF_FILE){
-        bool lineChanged = false;
-        rule newRule;
         if(currentToken.token_type == ERROR){
             std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
             exit(1);
@@ -67,7 +65,6 @@ LexicalAnalyzer lexer = LexicalAnalyzer();
             grammarRules[lhs].push_back(emptyRHS);
             order.push_back({lhs,emptyRHS});
             currentToken = lexer.GetToken();
-            currentToken = lexer.GetToken();
             if(currentToken.token_type == STAR){
                 currentToken = lexer.GetToken();
                 continue;
@@ -80,10 +77,6 @@ LexicalAnalyzer lexer = LexicalAnalyzer();
                 rhs.push_back(currentToken.lexeme);
                 currentToken = lexer.GetToken();
             } else if(currentToken.token_type == OR){
-                if(rhs.empty()){
-                    std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
-                    exit(1);
-                }
                 grammarRules[lhs].push_back(rhs);
                 order.push_back({lhs,rhs});
                 rhs.clear();
@@ -95,6 +88,23 @@ LexicalAnalyzer lexer = LexicalAnalyzer();
                     order.push_back({lhs,emptyRHS});
                     break;
                 }
+                while(currentToken.token_type == OR){
+                    std::vector<std::string> emptyRHS;
+                    grammarRules[lhs].push_back(emptyRHS);
+                    order.push_back({lhs,emptyRHS});
+                    currentToken = lexer.GetToken();
+
+                    if(currentToken.token_type == STAR){
+                        std::vector<std::string> emptyRHS2;
+                        grammarRules[lhs].push_back(emptyRHS2);
+                        order.push_back({lhs,emptyRHS2});
+                        break;
+                    }
+                }
+                if(currentToken.token_type == STAR){
+                    break;
+                }
+
             } else if (currentToken.token_type == STAR){
                 if(rhs.empty()){
                     std::cout << "SYNTAX ERROR !!!!!!!!!!!!!!" << "\n";
