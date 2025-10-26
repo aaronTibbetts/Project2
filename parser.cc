@@ -358,164 +358,118 @@ void printFirstSet(std::unordered_map<std::string, std::vector<std::vector<std::
 
 
 void printFollowSet(std::unordered_map<std::string, std::vector<std::vector<std::string>>> grammar){
-    std::unordered_map<std::string, std::vector<std::string>> followSets;
+    std::unordered_map<std::string, std::set<std::string>> followSets;
     std::unordered_map<std::string, std::vector<std::string>> firstSets = firstSet(grammar); 
-    //std::vector<std::string> seenOrderVector = getVector(grammar);
-    //std::vector<std::string> seenOrderVectorTerm = getVectorTerm(grammar);
     std::set<std::string> nullable = getNullable(grammar);
-    seenOrderVectorTerm.insert(seenOrderVectorTerm.begin(), "$");
 
-    for(const auto& element : seenOrderVector){
-        followSets[element] = {};
-    }
-    
-    followSets[seenOrderVector[0]].push_back("$"); //rule  1
+    followSets[order[0].first].insert("$"); //rule 1 
 
-    for(const auto& element: grammar){ //rule 4 & 5
-        for(const auto& vec : element.second){
-            int k = vec.size();
-            for(int i =0; i < k-1; i++){
-                if(contains(seenOrderVector,vec[i])){
-                    std::string j = vec[i+1];
-                    for(const auto& symbol :  firstSets[j]){
-                        if(!symbol.empty()){
-                            followSets[vec[i]].push_back(symbol);
-                            if(nullable.find(j) == nullable.end())
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-
-    bool changed = true;
-    while (changed) {
-        changed = false;
-        for (const auto& element : grammar) {
-            std::string nonTerminal = element.first;
-            for(const auto& production : element.second){
-                for(int i = 0; i < production.size(); i++){
-                    std::string symbol  = production[i];
-                    if(grammar.find(symbol) != grammar.end()){
-                        if(i<production.size()-1){
-                            std::string nextSymbol = production[i+1];
-                            if(grammar.find(nextSymbol) != grammar.end()){ //if non terminal 
-                                if(nullable.find(nextSymbol) != nullable.end()){
-                                    std::string next = nextSymbol;
-                                    int current = i+1;
-                                    while(current < production.size()){
-                                        std::string next = production[current];
-                                        if(grammar.find(next) == grammar.end()){
-                                            if(!contains(followSets[symbol],next)){
-                                                followSets[symbol].push_back(next);
-                                                changed = true;
-                                                
-                                            }
-                                            break;
-                                        } else if(nullable.find(next) == nullable.end()){
-                                            break;
-                                        }else{
-                                            current++;
-                                        }
+    //apply rule 4 & 5
+    for(const auto& element : order){
+        for(int i = 0; i < element.second.size(); i++){
+            std::string currentSymbol = element.second[i];
+            if(contains(seenOrderVector,currentSymbol)){ // if it is a terminal we care and wanna start building the followSets 
+                if(i+1 < element.second.size()){ //checking if the next symbol is the last one in the vector 
+                    std::string nextSymbol = element.second[i+1]; //get the next symbol
+                    if(contains(seenOrderVector, nextSymbol)){ //if it is a nonTerminal we need to get the first set 
+                        if(nullable.find(nextSymbol) != nullable.end()){ //if the nextSymbol is nullable, att first set and then move to the next symbol till not nullable
+                            for(const auto& symbol : firstSets[nextSymbol]){
+                                followSets[currentSymbol].insert(symbol);
+                            }
+                            for(int j = i+1; j < element.second.size(); j++){
+                                std::string s = element.second[j];
+                                if(nullable.find(s) == nullable.end()){
+                                    if(contains(seenOrderVectorTerm, s)){
+                                        followSets[currentSymbol].insert(s);
                                     }
-                                    if(current == production.size()){
-                                        for(const auto& term: followSets[nonTerminal]){
-                                            if(!contains(followSets[symbol],term) && !term.empty()){
-                                                followSets[symbol].push_back(term);
-                                                changed = true;
-                                            }
-                                        }
-                                    }
-                                } else { 
-                                    for(const auto& term: firstSets[nextSymbol]){
-                                        if(!term.empty() && !contains(followSets[symbol],term)){
-                                            followSets[symbol].push_back(term);
-                                            changed = true;
-                                        }
-                                    }
-                                }
-                            } else {
-                                if(!contains(followSets[symbol],nextSymbol) && !nextSymbol.empty()){
-                                    followSets[symbol].push_back(nextSymbol);
-                                    changed = true;
-                                }
-                            } 
-                        }
-                        if(i == production.size()-1){ 
-                            if(nullable.find(symbol)!=nullable.end()){
-                                if(i-1 > -1){
-                                std::string prev = production[i-1];
-                                    for(const auto& term: followSets[nonTerminal]){
-                                        if(!contains(followSets[prev],term)&& !term.empty()){
-                                            followSets[prev].push_back(term);
-                                            changed = true;
-                                        }
-                                    }
+                                    break;
                                 }
                             }
-                            for(const auto& term: followSets[nonTerminal]){
-                                if(!contains(followSets[symbol],term) &&  !term.empty()){
-                                    followSets[symbol].push_back(term);
+                        } else{ //not nullable
+                            for(const auto& symbol : firstSets[nextSymbol]){
+                                followSets[currentSymbol].insert(symbol);
+                            }
+                        }
+                    } else { //if it is a terminal we just add it to the followSets
+                        followSets[currentSymbol].insert(nextSymbol);
+                    }
+                }
+            }
+        }
+    }
+
+    bool changed = true;
+    while(changed){
+        changed = false;
+        for(const auto& element : order){
+            for(int i = 0; i < element.second.size(); i++){
+                std::string currentSymbol = element.second[i];
+                if(i+1 < element.second.size()){
+                    std::string nextSymbol = element.second[i+1];
+                    if(nullable.find(nextSymbol) != nullable.end()){
+                        bool allNullable = true;
+                        for(int j = i+1; j < element.second.size(); j++){
+                            if(nullable.find(element.second[j]) == nullable.end()){
+                                allNullable = false;
+                                break;
+                            }
+                        }
+                        if(allNullable){
+                            for(const auto& s: followSets[element.first]){
+                                if(followSets[currentSymbol].insert(s).second == true){
                                     changed = true;
-                                }   
-                            }   
+                                }
+                            }
                         }
                     }
+                }  else{
+                    for(const auto& symbol : followSets[element.first]){
+                        if(followSets[currentSymbol].insert(symbol).second == true){
+                            changed = true;
+                        }
+                    }
+                    
                 }
             }
-        } 
+        }
     }
-   
 
-    for(const auto& element :followSets){
-        for(const auto& v: element.second){
-            if(contains(element.second, "$")){
-                if(v == element.second.front()){
-                    if(v != "$"){
-                        auto tmp = element.second;
-                        auto it = std::find(tmp.begin(), tmp.end(), "$");
-                        std::rotate(tmp.begin(), it , it+1);
-                        followSets[element.first] = tmp; 
+    seenOrderVectorTerm.insert(seenOrderVectorTerm.begin(), "$");
+    std::set<std::string> printed;
+    for(const auto& e : order){
+        if(printed.find(e.first) == printed.end()){
+            std:: cout << "FOLLOW(" << e.first << ") = { ";
+            printed.insert(e.first);
+            int count = 0;
+            for(const auto& term : seenOrderVectorTerm){
+                if(followSets[e.first].find(term) != followSets[e.first].end()){
+                    if(count > 0){
+                        std:: cout << ", ";
+                    }
+                    std:: cout << term;
+                    count++;
+                }
+            }
+            std::cout << " } \n";
+        }
+        for(const auto& symbol : e.second){
+            int count = 0;
+            if(printed.find(symbol) == printed.end() && contains(seenOrderVector, symbol)){
+                printed.insert(symbol);
+                std:: cout << "FOLLOW(" << symbol << ") = { ";
+                for(const auto& term : seenOrderVectorTerm){
+                    if(followSets[symbol].find(term) != followSets[symbol].end()){
+                        if(count > 0){
+                            std::cout << ", ";
+                        }
+                        count++;
+                        std::cout << term;
                     }
                 }
+                std::cout << " } \n";
             }
         }
     }
-
-    for(const auto& element : followSets){
-        if(contains(followSets[element.first], " ")){
-            if(contains(element.second, " ")){
-                auto tmp = element.second;
-                auto i = std::remove(tmp.begin(), tmp.end(), " ");
-                tmp.erase(i, tmp.end());
-                followSets[element.first]= tmp;
-            }
-        }
-    }
-
-    for(const auto& element: seenOrderVectorTerm){
-        if(element.empty()){
-           std::cout<<"has space";
-        }
-    }
-
-    for(const auto& entry: seenOrderVector){
-        std::cout<<"FOLLOW(" << entry <<") = { ";
-        bool first = true;
-        for(const auto& term: seenOrderVectorTerm){
-            if(contains(followSets[entry], term)){
-                if(!first){
-                    std::cout<<", ";
-                }
-                std::cout << term;
-                first = false;
-            }
-        }
-        std::cout<<" }\n";
-    }
-       
 }
     
 void leftFactor(std::unordered_map<std::string, std::vector<std::vector<std::string>>> grammar){
@@ -645,47 +599,6 @@ void elemRecursion(std::unordered_map<std::string, std::vector<std::vector<std::
         std::cout<<"#\n";
     }
        
-}
-
-std::vector<std::string>getVector(std::unordered_map<std::string, std::vector<std::vector<std::string>>>  grammar){
-    std:: vector <std::string> nonTerminals;
-    std:: set<std::string> seen;
-    for (int i = 0; i < orderVector.size(); i++) {
-        const auto v = grammar[orderVector[i]];
-        if(i == 0 || seen.find(orderVector[i]) == seen.end()){
-            nonTerminals.push_back(orderVector[i]);
-            seen.insert(orderVector[i]);
-        }
-        for(const auto& rhs : v){
-            for(const auto& symbol : rhs){
-                if(grammar.find(symbol) != grammar.end() && seen.find(symbol) == seen.end()){
-                    nonTerminals.push_back(symbol);
-                    seen.insert(symbol);
-                }
-            }
-        }
-    }
-    seenOrderVector = nonTerminals;
-    
-    return seenOrderVector;
-}
-
-std::vector<std::string> getVectorTerm(std::unordered_map<std::string, std::vector<std::vector<std::string>>> grammar){
-    std:: vector <std::string> terminals;
-    std:: set<std::string> seen;
-    for (const auto& element : orderVector) {
-        const auto v = grammar[element]; 
-        for (const auto& rhs : v) {
-            for (const auto& symbol : rhs) {
-                if (grammar.find(symbol) == grammar.end() &&seen.find(symbol)==seen.end()) {
-                    terminals.push_back(symbol);
-                    seen.insert(symbol);
-                }
-            }
-        }
-    }
-    seenOrderVectorTerm = terminals;
-    return seenOrderVectorTerm;
 }
 
 std::set<std::string> getNullable(std::unordered_map<std::string, std::vector<std::vector<std::string>>> grammar){
