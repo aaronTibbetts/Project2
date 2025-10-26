@@ -42,10 +42,6 @@ void leftFactor(std::unordered_map<std::string, std::vector<std::vector<std::str
 
 void elemRecursion(std::unordered_map<std::string, std::vector<std::vector<std::string>>> grammar);
 
-std::vector<std::string> getVector(std::unordered_map<std::string, std::vector<std::vector<std::string>>> grammar);
-
-std::vector<std::string> getVectorTerm(std::unordered_map<std::string, std::vector<std::vector<std::string>>> grammar);
-
 std::set<std::string> getNullable(std::unordered_map<std::string, std::vector<std::vector<std::string>>> grammar);
 
 std::string findMatch(std::vector<std::vector<std::string>> productions, int indexToCheck);
