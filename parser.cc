@@ -238,8 +238,6 @@ std::unordered_map<std::string, std::vector<std::string>> firstSet(std::unordere
     std::set<std::string> nullableSet = getNullable(grammar);
     std::unordered_map<std::string, std::vector<std::string>> firstSets;
     bool changed = true;
-    //std::vector<std::string> nonTerminals = getVector(grammar);
-    //std::vector<std::string> terminals = getVectorTerm(grammar);
 
     //apply rule 1
     for(const auto& element : order){
@@ -323,7 +321,7 @@ void printFirstSet(std::unordered_map<std::string, std::vector<std::vector<std::
     std::set<std::string> printed;
     for(const auto& e : order){
         if(printed.find(e.first) == printed.end()){
-            std:: cout << "First(" << e.first << ") = { ";
+            std:: cout << "FIRST(" << e.first << ") = { ";
             printed.insert(e.first);
             int count = 0;
             for(const auto& term : seenOrderVectorTerm){
@@ -341,7 +339,7 @@ void printFirstSet(std::unordered_map<std::string, std::vector<std::vector<std::
             int count = 0;
             if(printed.find(symbol) == printed.end() && contains(seenOrderVector, symbol)){
                 printed.insert(symbol);
-                std:: cout << "First(" << symbol << ") = { ";
+                std:: cout << "FIRST(" << symbol << ") = { ";
                 for(const auto& term : seenOrderVectorTerm){
                     if(contains(firstSets[symbol], term)){
                         if(count > 0){
