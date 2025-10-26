@@ -580,7 +580,6 @@ void leftFactor(std::unordered_map<std::string, std::vector<std::vector<std::str
 
 void elemRecursion(std::unordered_map<std::string, std::vector<std::vector<std::string>>> grammar){
     std::multimap<std::string, std::vector<std::string>> newGrammar;
-    std::vector<std::string> seenOrderVector = getVector(grammar); 
    
 
     for(const auto& nonTerminal: seenOrderVector){
