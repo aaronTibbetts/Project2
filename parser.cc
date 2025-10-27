@@ -381,6 +381,10 @@ void printFollowSet(std::unordered_map<std::string, std::vector<std::vector<std:
                                 if(nullable.find(s) == nullable.end()){
                                     if(contains(seenOrderVectorTerm, s)){
                                         followSets[currentSymbol].insert(s);
+                                    } else{
+                                        for(const auto& sym : firstSets[s]){
+                                            followSets[currentSymbol].insert(sym);
+                                        }
                                     }
                                     break;
                                 }
